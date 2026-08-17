@@ -17,7 +17,8 @@
 		"fmt": "prettier --check .",
 		"fmt:fix": "prettier --write .",
 		"lint": "eslint . && svelte-check --tsconfig ./tsconfig.json",
-		"check": "svelte-check --tsconfig ./tsconfig.json"
+		"check": "svelte-check --tsconfig ./tsconfig.json",
+		"test": "node --test src/lib/security/html.test.js src/lib/server/rate-limit.test.js"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",

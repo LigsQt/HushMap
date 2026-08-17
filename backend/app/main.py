@@ -23,6 +23,8 @@ async def lifespan(app: FastAPI):
         max_buffer_bytes=settings.audio_max_buffer_bytes,
         ttl_seconds=settings.audio_buffer_ttl_seconds,
         max_active_sessions=settings.audio_max_active_sessions,
+        max_active_sessions_per_owner=settings.audio_max_active_sessions_per_device,
+        max_recent_idempotency_keys=settings.audio_max_recent_idempotency_keys,
     )
 
     app.state.settings = settings
@@ -32,6 +34,12 @@ async def lifespan(app: FastAPI):
     app.state.audio_store = audio_store
     app.state.device_auth = DeviceAuthenticator(settings.device_api_keys)
     app.state.upload_limiter = SlidingWindowRateLimiter(settings.upload_rate_limit_per_minute)
+    app.state.summary_request_limiter = SlidingWindowRateLimiter(
+        settings.summary_request_rate_limit_per_minute
+    )
+    app.state.summary_global_limiter = SlidingWindowRateLimiter(
+        settings.summary_global_rate_limit_per_minute
+    )
 
     try:
         yield

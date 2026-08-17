@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { Chart, Label, Select } from 'flowbite-svelte';
+	import type { NoiseSession, ProxyErrorResponse, SessionSummaryResponse } from '$lib/api/generated/types';
 	import Card from '$lib/components/Card.svelte';
+	import { escapeHtml } from '$lib/security/html.js';
 	import Progressbar from '$lib/components/Progressbar.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
-	import type { NoiseSession, ProxyErrorResponse, SessionSummaryResponse } from '$lib/api/generated/types';
+
+	type ChartOptions = import('svelte').ComponentProps<typeof Chart>['options'];
 
 	const { data } = $props();
 	const { sessionsInfo } = data;
@@ -65,11 +68,11 @@
 		return [time, level]
 	}
 
-	function buildOptions(noiseLevels: number[], meanNoise: number[], colorHex: string, startTimes: string[], descriptions: string[]) {
+	function buildOptions(noiseLevels: number[], meanNoise: number[], colorHex: string, startTimes: string[], descriptions: string[]): ChartOptions {
 		return {
 			chart: {
 				height: '300px',
-				maxWidth: '95%',
+				width: '95%',
 				type: 'line' as const,
 				fontFamily: 'Inter, sans-serif',
 				dropShadow: {
@@ -100,9 +103,9 @@
 
 					return `
 						<div class="p-2 text-sm">
-							<p><strong>Time:</strong> ${time}</p>
-							<p><strong>Level:</strong> ${value}</p>
-							<p><strong>Description:</strong> ${description}</p>
+							<p><strong>Time:</strong> ${escapeHtml(time)}</p>
+							<p><strong>Level:</strong> ${escapeHtml(value)}</p>
+							<p><strong>Description:</strong> ${escapeHtml(description)}</p>
 						</div>
 					`;
 				},

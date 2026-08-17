@@ -37,8 +37,11 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.0-flash"
     ai_timeout_seconds: float = 30.0
     ai_max_retries: int = 2
+    summary_request_rate_limit_per_minute: int = 120
+    summary_global_rate_limit_per_minute: int = 30
 
     device_api_keys: Annotated[list[str], NoDecode] = []
+    allow_unauthenticated_device_uploads: bool = False
     upload_rate_limit_per_minute: int = 120
 
     audio_sample_rate: int = 16_000
@@ -49,6 +52,8 @@ class Settings(BaseSettings):
     audio_max_buffer_bytes: int = 2_560_000
     audio_buffer_ttl_seconds: int = 300
     audio_max_active_sessions: int = 100
+    audio_max_active_sessions_per_device: int = 10
+    audio_max_recent_idempotency_keys: int = 10_000
     audio_gain: float = 1.0
 
     @field_validator("cors_origins", "device_api_keys", mode="before")

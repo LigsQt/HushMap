@@ -31,6 +31,15 @@ class PointRepository:
         return list((await self._session.scalars(statement)).all())
 
 
+class SessionRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def exists(self, session_id: int) -> bool:
+        statement = select(Session.session_id).where(Session.session_id == session_id)
+        return await self._session.scalar(statement) is not None
+
+
 class RecordingRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session

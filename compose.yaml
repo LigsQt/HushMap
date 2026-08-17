@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hushmap}
       POSTGRES_DB: ${POSTGRES_DB:-hushmap}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -46,7 +46,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://hushmap:hushmap@postgres:5432/hushmap}
       BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
     ports:
-      - "${PORT:-8000}:8000"
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${PORT:-8000}:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,7 +75,7 @@ services:
       HOST: 0.0.0.0
       PORT: 3000
     ports:
-      - "3000:3000"
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${FRONTEND_PORT:-3000}:3000"
     depends_on:
       backend:
         condition: service_healthy

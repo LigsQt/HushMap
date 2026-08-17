@@ -4,11 +4,20 @@ import statistics
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
+from app.core.security import (
+    enforce_summary_global_rate_limit,
+    enforce_summary_request_rate_limit,
+)
 from app.dependencies import AIProviderDep, DbSessionDep
 from app.models import PointResponse
-from app.repositories import PointRepository, RecordingRepository, is_point_active
+from app.repositories import (
+    PointRepository,
+    RecordingRepository,
+    SessionRepository,
+    is_point_active,
+)
 from app.services.ai import AIProviderError
 
 router = APIRouter()
@@ -68,8 +77,6 @@ async def get_point_with_sessions(point_id: int, session: DbSessionDep) -> dict[
 @router.get("/geojson/points")
 async def get_points_geojson(session: DbSessionDep) -> dict[str, Any]:
     points = await PointRepository(session).list_with_recordings()
-    if not points:
-        raise HTTPException(status_code=404, detail="No points found")
 
     features: list[dict[str, Any]] = []
     for point in points:
@@ -104,15 +111,22 @@ async def get_points_geojson(session: DbSessionDep) -> dict[str, Any]:
 @router.get("/session_info/{session_id}")
 async def get_session_ai_description(
     session_id: int,
+    request: Request,
     session: DbSessionDep,
     ai: AIProviderDep,
 ) -> str:
+    await enforce_summary_request_rate_limit(request)
+    if not await SessionRepository(session).exists(session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
     recordings = await RecordingRepository(session).list_for_session(session_id)
     analysis_texts = "|".join(
         recording.analysis_text or "" for recording in recordings if recording.analysis_text
     )
+    await session.rollback()
     if not analysis_texts:
         return "No analysis text available for this session."
+    await enforce_summary_global_rate_limit(request)
 
     try:
         return await ai.summarize_descriptions(analysis_texts)
