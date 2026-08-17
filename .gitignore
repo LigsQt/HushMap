@@ -1,0 +1,73 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Database dumps and recovered extracts
+*.backup
+*.backup.gz
+*.dump
+*.sql.gz
+.local/
+db_cluster*.gz
+db_cluster*.backup
+db_cluster*.backup.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Node / frontend
+node_modules/
+frontend/.svelte-kit/
+frontend/build/
+frontend/.vercel/
+frontend/.pnpm-store/
+.pnpm-store/
+.vite/
+.eslintcache
+*.tsbuildinfo
+coverage/
+.nyc_output/
+.npm/
+.cache/
+
+# Tooling / OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+._*
+.idea/
+.vscode/
+.fleet/
+.history/
+*.log
+*.swp
+*.swo
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*~
+tmp/
+temp/
+save_audio/
+
+# Docker / local data
+postgres-data/
+*.pid
+agent-transcripts/

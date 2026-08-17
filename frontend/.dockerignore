@@ -1,0 +1,12 @@
+.git
+.gitignore
+.svelte-kit
+build
+node_modules
+.env
+.env.*
+!.env.example
+Dockerfile
+README.md
+*.log
+.DS_Store

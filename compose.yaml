@@ -1,0 +1,96 @@
+services:
+  postgres:
+    image: postgres:15.8-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hushmap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hushmap}
+      POSTGRES_DB: ${POSTGRES_DB:-hushmap}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hushmap} -d ${POSTGRES_DB:-hushmap}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - hushmap
+
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["alembic", "upgrade", "head"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://hushmap:hushmap@postgres:5432/hushmap}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hushmap
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      labels:
+        org.opencontainers.image.title: hushmap-backend
+        org.opencontainers.image.source: https://github.com/LigsQt/HushMap
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://hushmap:hushmap@postgres:5432/hushmap}
+      BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
+    ports:
+      - "${PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - hushmap
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      labels:
+        org.opencontainers.image.title: hushmap-frontend
+        org.opencontainers.image.source: https://github.com/LigsQt/HushMap
+    env_file:
+      - .env
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
+      HOST: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - hushmap
+
+networks:
+  hushmap:
+    driver: bridge
+
+volumes:
+  postgres_data:

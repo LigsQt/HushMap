@@ -1,0 +1,15 @@
+# Optional development overrides:
+#   docker compose -f compose.yaml -f compose.dev.yaml up --build
+
+services:
+  backend:
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/migrations:/app/migrations
+    environment:
+      DATABASE_URL: postgresql+psycopg://hushmap:hushmap@postgres:5432/hushmap
+
+  frontend:
+    environment:
+      BACKEND_URL: http://backend:8000
