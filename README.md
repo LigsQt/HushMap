@@ -1,6 +1,18 @@
-# HushMap
+## About HushMap
 
-Noise-mapping web application with a SvelteKit frontend, a FastAPI backend, PostgreSQL, and an embedded Gemini audio analysis provider.
+**HushMap: City Noise Map** is an Internet of Things-based (IoT) noise monitoring system designed to collect, analyze, and visualize sound data in urban environments. Built to address the pervasive issue of noise pollution, HushMap aims to aid urban planners, local government units, and researchers in making data-driven decisions for smarter, more sustainable cities.
+
+The system utilizes an ESP32 microcontroller equipped with an INMP441 MEMS microphone to continuously record ambient noise across various locations. This raw audio data is transmitted to a cloud server where it is processed to determine dBA levels. The system then leverages an embedded AI model (Google Gemini) to analyze the audio and append context-aware descriptions of the specific noise sources (e.g., "Road traffic," "Distant siren," "Voices nearby"). All collected data and AI-generated insights are visualized on an interactive, map-based web application.
+
+## Team
+
+HushMap was developed by:
+* Keanu Christopher Abriol
+* Anthony Lazaro
+* Lee Justine Maca
+* Rodrigo Emmanuel Roy
+* Carl John Salces
+* John Ysaac Villamil
 
 ## License
 
