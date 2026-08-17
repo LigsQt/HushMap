@@ -53,11 +53,14 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: pnpm check
-      - run: pnpm build
+      - name: Build for Vercel
+        run: pnpm build
+        env:
+          VERCEL: 1
 
   images:
     runs-on: ubuntu-latest
