@@ -71,3 +71,6 @@ save_audio/
 postgres-data/
 *.pid
 agent-transcripts/
+
+# Fly.io (app names, regions, and deploy settings are environment-specific)
+fly.toml
