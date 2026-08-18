@@ -1,18 +1,21 @@
 ## About HushMap
 
-**HushMap: City Noise Map** is an Internet of Things-based (IoT) noise monitoring system designed to collect, analyze, and visualize sound data in urban environments. Built to address the pervasive issue of noise pollution, HushMap aims to aid urban planners, local government units, and researchers in making data-driven decisions for smarter, more sustainable cities.
+**HushMap: City Noise Map** is an Internet of Things-based (IoT) noise monitoring system designed to collect, analyze, and visualize sound data in urban environments. This project was developed for the 2025 DCS IoT Cup (May 2025), where it was awarded Second Runner-Up.
 
-The system utilizes an ESP32 microcontroller equipped with an INMP441 MEMS microphone to continuously record ambient noise across various locations. This raw audio data is transmitted to a cloud server where it is processed to determine dBA levels. The system then leverages an embedded AI model (Google Gemini) to analyze the audio and append context-aware descriptions of the specific noise sources (e.g., "Road traffic," "Distant siren," "Voices nearby"). All collected data and AI-generated insights are visualized on an interactive, map-based web application.
+**🌐 Live Application:** [Hush Map](https://hush-map.vercel.app/)
+
+Built to address the pervasive issue of noise pollution, HushMap aims to aid urban planners, local government units, and researchers in making data-driven decisions for smarter, more sustainable cities. The system utilizes an ESP32 microcontroller equipped with an INMP441 MEMS microphone to continuously record ambient noise across various locations. This raw audio data is transmitted to a cloud server where it is processed to determine dBA levels. The system then leverages an embedded AI model (Google Gemini) to analyze the audio and append context-aware descriptions of the specific noise sources (e.g., "Road traffic," "Distant siren," "Voices nearby"). All collected data and AI-generated insights are visualized on an interactive, map-based web application.
 
 ## Team
 
 HushMap was developed by:
-* Keanu Christopher Abriol
-* Anthony Lazaro
-* Lee Justine Maca
-* Rodrigo Emmanuel Roy
-* Carl John Salces
-* John Ysaac Villamil
+
+- Keanu Christopher Abriol
+- Anthony Lazaro
+- Lee Justine Maca
+- Rodrigo Emmanuel Roy
+- Carl John Salces
+- John Ysaac Villamil
 
 ## License
 
@@ -26,8 +29,26 @@ Browser -> SvelteKit (/api proxies) -> FastAPI -> PostgreSQL
 ESP32   -> FastAPI /upload/{session_id}
 ```
 
-- `frontend/` — SvelteKit 2 + pnpm + `@sveltejs/adapter-node`
+- `frontend/` — SvelteKit 2 + pnpm; `@sveltejs/adapter-node` for Docker, `@sveltejs/adapter-vercel` on Vercel
 - `backend/` — FastAPI + uv + SQLAlchemy 2 + Alembic + Gemini provider
+
+## Frontend on Vercel
+
+This app is **SvelteKit**, not a Vite SPA. `pnpm build` does **not** create `dist/` or `public/`. On Vercel it writes `.vercel/output` via `@sveltejs/adapter-vercel`; in Docker it writes a Node server to `frontend/build/`.
+
+`frontend/vercel.json` sets the framework to SvelteKit so Vercel does not auto-detect Vite from `vite.config.ts` and then fail with "No Output Directory named dist".
+
+In the Vercel project:
+
+1. **Root Directory:** `frontend`
+2. **Framework Preset:** SvelteKit (not Vite or Other)
+3. **Output Directory:** leave empty — do not set `dist`, `public`, or `build`
+4. **Node.js Version:** 22
+5. **Install Command:** `pnpm install --frozen-lockfile`
+6. **Build Command:** `pnpm build`
+7. **Environment:** `BACKEND_URL` = public FastAPI URL (server-only, not `PUBLIC_`)
+
+Do not point Output Directory at `build` to silence the error; that directory is a Node server, not static files. ESP32 uploads must go to FastAPI, not to Vercel.
 
 ## Prerequisites
 
@@ -57,19 +78,25 @@ make smoke
 make db-seed
 ```
 
+
+
 ## Service URLs
 
-| Service | URL | Health |
-| --- | --- | --- |
-| Frontend | http://localhost:3000 | homepage |
-| Backend | http://localhost:8000 | `/health/live`, `/health/ready` |
-| PostgreSQL | localhost:15432 (Compose publish; override with `POSTGRES_PORT`) | Compose healthcheck |
+
+| Service    | URL                                                              | Health                          |
+| ---------- | ---------------------------------------------------------------- | ------------------------------- |
+| Frontend   | [http://localhost:3000](http://localhost:3000)                   | homepage                        |
+| Backend    | [http://localhost:8000](http://localhost:8000)                   | `/health/live`, `/health/ready` |
+| PostgreSQL | localhost:15432 (Compose publish; override with `POSTGRES_PORT`) | Compose healthcheck             |
+
 
 Expected backend root response:
 
 ```json
 {"message":"Working!"}
 ```
+
+
 
 ## Environment variables
 
@@ -87,6 +114,8 @@ See `.env.example`. Important values:
 - `HOST_BIND_ADDRESS` — Compose bind address; defaults to loopback
 - `ADDRESS_HEADER` / `XFF_DEPTH` — adapter-node client-address settings for trusted reverse proxies only
 
+
+
 ## Security and data handling
 
 - Report vulnerabilities according to [SECURITY.md](SECURITY.md); do not include secrets in public issues.
@@ -97,6 +126,8 @@ See `.env.example`. Important values:
 - Production fails closed when device API keys are absent. The unauthenticated upload bypass requires both `APP_ENV=development` and `ALLOW_UNAUTHENTICATED_DEVICE_UPLOADS=true`.
 - Session summaries remain a public read feature. The frontend limits each client, while the backend independently limits total requests and Gemini calls. Deployments with stricter access requirements should place the application behind their own user authentication.
 - Behind a trusted reverse proxy, configure adapter-node's `ADDRESS_HEADER` and `XFF_DEPTH` so per-client limits use the browser address. The proxy must strip client-supplied forwarding headers before setting its own.
+
+
 
 ## Third-party services
 
@@ -155,6 +186,8 @@ Hot-reload Compose variant:
 docker compose -f compose.yaml -f compose.dev.yaml up --build
 ```
 
+
+
 ## Device uploads
 
 `POST /upload/{session_id}` accepts raw 16 kHz, 32-bit, mono PCM chunks for an
@@ -199,6 +232,8 @@ pnpm lint
 pnpm build
 ```
 
+
+
 ## Troubleshooting
 
 - **Port already in use** — change `PORT` / `POSTGRES_PORT` in `.env`, or stop the conflicting process.
@@ -206,4 +241,6 @@ pnpm build
 - **Stale Docker volume** — `make db-reset` (destroys local data).
 - **Missing env vars** — copy `.env.example` again and set `GEMINI_API_KEY` if AI routes are needed.
 - **Lockfile mismatch** — use `uv sync --frozen` / `pnpm install --frozen-lockfile`; regenerate locks deliberately.
+- **Vercel: No Output Directory named dist** — Vercel detected Vite. Set Root Directory to `frontend`, Framework Preset to SvelteKit, and clear Output Directory. Do not set it to `dist` or `build`.
 - **Apple Silicon image issues** — rebuild with `docker compose build --pull` and ensure the Docker engine supports `linux/arm64` wheels for NumPy/SciPy.
+
